@@ -23,7 +23,6 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-
 body {
     font-family: 'Cairo', sans-serif;
     background: var(--dark);
@@ -41,7 +40,7 @@ body {
     align-items: center;
     justify-content: center;
     z-index: 9999;
-    transition: opacity 0.8s ease, visibility 0.8s;
+    transition: opacity 1s ease, visibility 1s;
 }
 #preloader.hidden { opacity: 0; visibility: hidden; }
 .preloader-content { text-align: center; }
@@ -424,19 +423,25 @@ body {
 </footer>
 
 <!-- ===== المكتبات ===== -->
-<!-- Puter.js للذكاء الاصطناعي (مجاني، بدون مفتاح API) -->
 <script src="https://js.puter.com/v2/"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 
 <script>
 // ===================================================================
-// 1. شاشة التحميل والتنقل
+// 1. التهيئة العامة والأنميشن
 // ===================================================================
 window.addEventListener('load', () => {
     setTimeout(() => {
         document.getElementById('preloader').classList.add('hidden');
+        // بدء أنميشن GSAP بعد اختفاء شاشة التحميل
+        initAnimations();
     }, 2000);
 });
 
+// ===================================================================
+// 2. التنقل
+// ===================================================================
 const navbar = document.getElementById('navbar');
 const navToggle = document.getElementById('navToggle');
 const navMenu = document.getElementById('navMenu');
@@ -456,7 +461,7 @@ document.querySelectorAll('.nav-link').forEach(link => {
 });
 
 // ===================================================================
-// 2. بيانات السور (114 سورة)
+// 3. بيانات السور (114 سورة)
 // ===================================================================
 const SURAHS = [
     {num:1, name:'الفاتحة', ayahs:7, type:'مكية'}, {num:2, name:'البقرة', ayahs:286, type:'مدنية'},
@@ -519,7 +524,7 @@ const SURAHS = [
 ];
 
 // ===================================================================
-// 3. قسم المصحف - التلاوات
+// 4. قسم المصحف - التلاوات
 // ===================================================================
 let currentReciter = 'Yasser_Ad-Dussary_128kbps';
 let currentSurah = 0;
@@ -534,7 +539,6 @@ const playerSurah = document.getElementById('playerSurah');
 const playerReciter = document.getElementById('playerReciter');
 const surahGrid = document.getElementById('surahGrid');
 
-// عرض السور
 function renderSurahs() {
     surahGrid.innerHTML = SURAHS.map(surah => `
         <div class="surah-card" data-num="${surah.num}" data-name="${surah.name}">
@@ -553,7 +557,6 @@ function renderSurahs() {
     });
 }
 
-// تشغيل سورة كاملة
 function playSurah(num, name) {
     currentSurah = num;
     const paddedNum = String(num).padStart(3, '0');
@@ -578,7 +581,6 @@ function playSurah(num, name) {
     });
 }
 
-// تبديل القارئ
 document.querySelectorAll('.reciter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.reciter-btn').forEach(b => b.classList.remove('active'));
@@ -590,7 +592,6 @@ document.querySelectorAll('.reciter-btn').forEach(btn => {
     });
 });
 
-// التحكم في التشغيل
 playPauseBtn.addEventListener('click', () => {
     if (!audio.src) return;
     if (isPlaying) {
@@ -618,7 +619,6 @@ document.getElementById('playNext').addEventListener('click', () => {
     }
 });
 
-// شريط التقدم
 audio.addEventListener('timeupdate', () => {
     if (audio.duration) {
         progressBar.value = (audio.currentTime / audio.duration) * 100;
@@ -640,7 +640,7 @@ function formatTime(sec) {
 renderSurahs();
 
 // ===================================================================
-// 4. قسم الأذكار
+// 5. قسم الأذكار
 // ===================================================================
 const ADHKAR_API = 'https://islamicadkar.xyz/api/adkar';
 
@@ -652,7 +652,6 @@ async function loadAdhkar(category) {
         const response = await fetch(`${ADHKAR_API}/${category}`);
         const data = await response.json();
 
-        // التعامل مع أشكال البيانات المختلفة
         let adhkar = data;
         if (data.Adkar) adhkar = data.Adkar;
         if (data.data) adhkar = data.data;
@@ -682,7 +681,7 @@ async function loadAdhkar(category) {
 
     } catch (error) {
         console.error('خطأ في تحميل الأذكار:', error);
-        // بيانات احتياطية في حال فشل الـ API
+        // بيانات احتياطية
         const fallback = {
             morning: [
                 {text:'أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ', count:'مرة واحدة', virtue:'من قالها حين يصبح فقد أدى شكر يومه'},
@@ -722,9 +721,8 @@ document.querySelectorAll('.adhkar-tab').forEach(tab => {
 loadAdhkar('morning');
 
 // ===================================================================
-// 5. الذكاء الاصطناعي (Puter.js + Pollinations كبديل)
+// 6. الذكاء الاصطناعي (Puter.js + Pollinations كبديل)
 // ===================================================================
-
 const SYSTEM_PROMPT = `أنت "نور"، مساعد إسلامي ذكي. أجب باللغة العربية الفصحى، واستند إلى القرآن والسنة. إذا لم تكن متأكداً قل ذلك. كن لطيفاً ومحترماً. لا تفتي في مسائل خلافية معقدة وانصح بسؤال أهل العلم.`;
 
 // المحاولة 1: Puter.js (بدون مفتاح API)
@@ -777,7 +775,7 @@ async function getAIResponse(prompt, history = []) {
 }
 
 // ===================================================================
-// 6. قسم الفتاوى
+// 7. قسم الفتاوى
 // ===================================================================
 const fatwaInput = document.getElementById('fatwaInput');
 const fatwaBtn = document.getElementById('fatwaBtn');
@@ -806,7 +804,7 @@ document.querySelectorAll('.suggestion-btn').forEach(btn => {
 });
 
 // ===================================================================
-// 7. قسم المحادثة
+// 8. قسم المحادثة
 // ===================================================================
 const chatInput = document.getElementById('chatInput');
 const chatSend = document.getElementById('chatSend');
@@ -831,7 +829,6 @@ async function sendChatMessage() {
     addChatMessage(text, true);
     chatInput.value = '';
 
-    // مؤشر الكتابة
     const typing = document.createElement('div');
     typing.className = 'message bot-message';
     typing.id = 'typingIndicator';
@@ -851,6 +848,112 @@ async function sendChatMessage() {
 
 chatSend.addEventListener('click', sendChatMessage);
 chatInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendChatMessage(); });
+
+// ===================================================================
+// 9. أنميشن GSAP المتقدم
+// ===================================================================
+function initAnimations() {
+    gsap.registerPlugin(ScrollTrigger);
+
+    // أنميشن عنوان Hero
+    gsap.from('.hero-badge', { duration: 1, y: 30, opacity: 0, ease: 'power3.out', delay: 0.2 });
+    gsap.from('.hero-title', { duration: 1.2, y: 50, opacity: 0, ease: 'power3.out', delay: 0.4 });
+    gsap.from('.hero-subtitle', { duration: 1, y: 30, opacity: 0, ease: 'power3.out', delay: 0.6 });
+    gsap.from('.hero-ayah', { duration: 1, y: 30, opacity: 0, ease: 'power3.out', delay: 0.8 });
+    gsap.from('.hero-buttons', { duration: 1, y: 30, opacity: 0, ease: 'power3.out', delay: 1.0 });
+
+    // أنميشن ظهور الأقسام عند التمرير
+    gsap.utils.toArray('.section-header').forEach(header => {
+        gsap.from(header, {
+            scrollTrigger: { trigger: header, start: 'top 85%' },
+            duration: 1,
+            y: 50,
+            opacity: 0,
+            ease: 'power3.out'
+        });
+    });
+
+    // أنميشن بطاقات السور
+    gsap.utils.toArray('.surah-card').forEach((card, i) => {
+        gsap.from(card, {
+            scrollTrigger: { trigger: '.surah-grid', start: 'top 80%' },
+            duration: 0.5,
+            y: 20,
+            opacity: 0,
+            delay: i * 0.03,
+            ease: 'power2.out'
+        });
+    });
+
+    // أنميشن بطاقات الأذكار
+    gsap.utils.toArray('.adhkar-card').forEach((card, i) => {
+        gsap.from(card, {
+            scrollTrigger: { trigger: '.adhkar-list', start: 'top 80%' },
+            duration: 0.5,
+            y: 20,
+            opacity: 0,
+            delay: i * 0.05,
+            ease: 'power2.out'
+        });
+    });
+
+    // تأثير الجزيئات (Particles)
+    createParticles();
+}
+
+function createParticles() {
+    const hero = document.querySelector('.hero');
+    if (!hero) return;
+
+    const canvas = document.createElement('canvas');
+    canvas.style.position = 'absolute';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.pointerEvents = 'none';
+    canvas.style.zIndex = '1';
+    hero.appendChild(canvas);
+
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    let w, h;
+
+    function resize() {
+        w = canvas.width = hero.offsetWidth;
+        h = canvas.height = hero.offsetHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    for (let i = 0; i < 50; i++) {
+        particles.push({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            r: Math.random() * 2 + 1,
+            dx: (Math.random() - 0.5) * 0.5,
+            dy: (Math.random() - 0.5) * 0.5,
+            alpha: Math.random() * 0.5 + 0.1
+        });
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, w, h);
+        particles.forEach(p => {
+            p.x += p.dx;
+            p.y += p.dy;
+            if (p.x < 0 || p.x > w) p.dx *= -1;
+            if (p.y < 0 || p.y > h) p.dy *= -1;
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(201, 162, 39, ${p.alpha})`;
+            ctx.fill();
+        });
+        requestAnimationFrame(animate);
+    }
+    animate();
+}
 </script>
 
 </body>
